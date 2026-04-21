@@ -71,6 +71,25 @@
       color: #0a7a28;
     }
 
+    .qr-box {
+      text-align: center;
+    }
+
+    .qr-message {
+      font-size: 22px;
+      font-weight: bold;
+      line-height: 1.4;
+      margin-bottom: 18px;
+    }
+
+    .qr-image {
+      max-width: 320px;
+      width: 100%;
+      border-radius: 12px;
+      margin: 0 auto 18px;
+      display: block;
+    }
+
     .btn {
       display: inline-block;
       width: 100%;
@@ -105,8 +124,17 @@
       <div class="total" id="total">0 Bs</div>
     </div>
 
-    <div class="card">
-      <a class="btn" id="continuarBtn" href="#">Continuar con el pedido</a>
+    <div class="card qr-box">
+      <div class="qr-message">
+        Porfavor haga su pago y presione el botón que dice:<br>
+        Esperar verificación de pago
+      </div>
+
+      <img class="qr-image" src="qr.jpg" alt="QR de pago">
+
+      <a class="btn" id="continuarBtn" href="https://sites.google.com/view/pagomultistore/gracias">
+        Esperar verificación de pago
+      </a>
     </div>
   </div>
 
@@ -148,8 +176,6 @@
 
     productosDiv.innerHTML = html;
     totalDiv.textContent = `${total} Bs`;
-
-    document.getElementById('continuarBtn').href = '#';
   </script>
 </body>
 </html>
