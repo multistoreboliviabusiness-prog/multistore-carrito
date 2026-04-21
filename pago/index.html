@@ -145,7 +145,7 @@
 
       <img class="qr-image" src="../qr.jpg" alt="QR de pago">
 
-      <a class="btn" href="https://sites.google.com/view/pagomultistore/gracias">
+      <a class="btn" id="botonGracias" href="#">
         Esperar verificación de pago
       </a>
     </div>
@@ -206,6 +206,7 @@
 
     const costoEnvio = costoBaseEnvio * bloquesEnvio;
     const totalFinal = totalPedido + costoEnvio;
+    const linkGracias = `https://sites.google.com/view/pagomultistore/gracias?subtotal=${encodeURIComponent(totalPedido)}&costo_envio=${encodeURIComponent(costoEnvio)}&total_pedido_mas_envio=${encodeURIComponent(totalFinal)}`;
 
     lineasTotalesDiv.innerHTML = `
       <div class="totals-line">
@@ -225,6 +226,8 @@
         <span>${totalFinal} Bs</span>
       </div>
     `;
+
+    document.getElementById('botonGracias').href = linkGracias;
   </script>
 </body>
 </html>
