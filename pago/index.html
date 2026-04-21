@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pago MultiStore</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: url('../fondo.png') no-repeat center center fixed;
+      background-size: cover;
+      color: #222;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 32px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 22px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .row:last-child {
+      border-bottom: none;
+    }
+
+    .product-name {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .muted {
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .subtotal {
+      font-weight: bold;
+      white-space: nowrap;
+      align-self: center;
+    }
+
+    .totals-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      font-size: 18px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .totals-line:last-child {
+      border-bottom: none;
+    }
+
+    .grand-total {
+      font-size: 28px;
+      font-weight: bold;
+      color: #0a7a28;
+    }
+
+    .qr-box {
+      text-align: center;
+    }
+
+    .qr-message {
+      font-size: 22px;
+      font-weight: bold;
+      line-height: 1.4;
+      margin-bottom: 18px;
+    }
+
+    .qr-image {
+      max-width: 320px;
+      width: 100%;
+      border-radius: 12px;
+      margin: 0 auto 18px;
+      display: block;
+    }
+
+    .btn {
+      display: inline-block;
+      width: 100%;
+      text-align: center;
+      background: #0b57d0;
+      color: white;
+      text-decoration: none;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-weight: bold;
+      box-sizing: border-box;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .highlight {
+      font-weight: bold;
+      color: #0a7a28;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Resumen final de tu pedido</h1>
+      <p class="muted">Revisa tus productos y el monto total antes de realizar el pago.</p>
+    </div>
+
+    <div class="card">
+      <h2>Productos</h2>
+      <div id="productos"></div>
+    </div>
+
+    <div class="card">
+      <h2>Resumen de pago</h2>
+      <div id="lineasTotales"></div>
+    </div>
+
+    <div class="card qr-box">
+      <div class="qr-message">
+        Porfavor haga su pago y presione el botón que dice:<br>
+        Esperar verificación de pago
+      </div>
+
+      <img class="qr-image" src="../qr.jpg" alt="QR de pago">
+
+      <a class="btn" href="https://sites.google.com/view/pagomultistore/gracias">
+        Esperar verificación de pago
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const itemsParam = params.get('items') || '';
+    const totalPedido = Number(params.get('total_pedido')) || 0;
+
+    const productosDiv = document.getElementById('productos');
+    const lineasTotalesDiv = document.getElementById('lineasTotales');
+
+    let htmlProductos = '';
+    let cantidadTotalProductos = 0;
+
+    if (itemsParam) {
+      const items = itemsParam.split('|');
+
+      items.forEach(item => {
+        const [producto, precio, cantidad] = item.split(',');
+        const precioNum = Number(precio) || 0;
+        const cantidadNum = Number(cantidad) || 1;
+        const subtotal = precioNum * cantidadNum;
+
+        cantidadTotalProductos += cantidadNum;
+
+        htmlProductos += `
+          <div class="row">
+            <div>
+              <div class="product-name">${decodeURIComponent(producto)}</div>
+              <div class="muted">Precio unitario: ${precioNum} Bs</div>
+              <div class="muted">Cantidad: ${cantidadNum}</div>
+              <div class="muted">Subtotal: ${subtotal} Bs</div>
+            </div>
+            <div class="subtotal">${subtotal} Bs</div>
+          </div>
+        `;
+      });
+    } else {
+      htmlProductos = `<p class="muted">No hay productos en el pedido.</p>`;
+    }
+
+    productosDiv.innerHTML = htmlProductos;
+
+    const bloquesEnvio = Math.ceil(cantidadTotalProductos / 3);
+
+    const ciudad = 'Por definir';
+    let costoBaseEnvio = 0;
+
+    // Aquí luego conectaremos la ciudad real y su costo.
+    const costoEnvio = costoBaseEnvio * bloquesEnvio;
+    const totalFinal = totalPedido + costoEnvio;
+
+    lineasTotalesDiv.innerHTML = `
+      <div class="totals-line">
+        <span>Subtotal productos</span>
+        <strong>${totalPedido} Bs</strong>
+      </div>
+      <div class="totals-line">
+        <span>Ciudad de envío</span>
+        <strong>${ciudad}</strong>
+      </div>
+      <div class="totals-line">
+        <span>Costo de envío</span>
+        <strong>${costoEnvio} Bs</strong>
+      </div>
+      <div class="totals-line grand-total">
+        <span>Total final</span>
+        <span>${totalFinal} Bs</span>
+      </div>
+    `;
+  </script>
+</body>
+</html>
