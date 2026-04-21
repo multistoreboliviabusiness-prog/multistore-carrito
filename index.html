@@ -71,25 +71,6 @@
       color: #0a7a28;
     }
 
-    .qr-box {
-      text-align: center;
-    }
-
-    .qr-message {
-      font-size: 22px;
-      font-weight: bold;
-      line-height: 1.4;
-      margin-bottom: 18px;
-    }
-
-    .qr-image {
-      max-width: 320px;
-      width: 100%;
-      border-radius: 12px;
-      margin: 0 auto 18px;
-      display: block;
-    }
-
     .btn {
       display: inline-block;
       width: 100%;
@@ -124,17 +105,8 @@
       <div class="total" id="total">0 Bs</div>
     </div>
 
-    <div class="card qr-box">
-      <div class="qr-message">
-        Porfavor haga su pago y presione el botón que dice:<br>
-        Esperar verificación de pago
-      </div>
-
-      <img class="qr-image" src="qr.jpg" alt="QR de pago">
-
-      <a class="btn" id="continuarBtn" href="https://sites.google.com/view/pagomultistore/gracias">
-        Esperar verificación de pago
-      </a>
+    <div class="card">
+      <a class="btn" id="continuarBtn" href="#">Ver resumen y pago</a>
     </div>
   </div>
 
@@ -176,6 +148,28 @@
 
     productosDiv.innerHTML = html;
     totalDiv.textContent = `${total} Bs`;
+
+    const resumenPedido = itemsParam
+      ? itemsParam
+          .split('|')
+          .map(item => {
+            const [producto, precio, cantidad] = item.split(',');
+            return `${decodeURIComponent(producto)} x${cantidad}`;
+          })
+          .join(' | ')
+      : '';
+
+    const tallyBaseUrl = 'https://tally.so/r/eqxBpe';
+    const redirectUrl = 'https://multistore-carrito.vercel.app/pago';
+
+    const continuarUrl =
+      `${tallyBaseUrl}` +
+      `?items=${encodeURIComponent(itemsParam)}` +
+      `&resumen_pedido=${encodeURIComponent(resumenPedido)}` +
+      `&total_pedido=${encodeURIComponent(total)}` +
+      `&redirect_url=${encodeURIComponent(redirectUrl)}`;
+
+    document.getElementById('continuarBtn').href = continuarUrl;
   </script>
 </body>
 </html>
