@@ -100,24 +100,40 @@
 
   <script>
     const params = new URLSearchParams(window.location.search);
+    const itemsParam = params.get('items') || '';
+    const productosDiv = document.getElementById('productos');
+    const totalDiv = document.getElementById('total');
 
-    const producto = params.get('producto') || 'Producto no definido';
-    const precio = Number(params.get('precio')) || 0;
-    const cantidad = Number(params.get('cantidad')) || 1;
+    let total = 0;
+    let html = '';
 
-    const subtotal = precio * cantidad;
+    if (itemsParam) {
+      const items = itemsParam.split('|');
 
-    document.getElementById('productos').innerHTML = `
-      <div class="row">
-        <div>
-          <strong>${producto}</strong><br>
-          <span class="muted">Cantidad: ${cantidad}</span>
-        </div>
-        <div>${subtotal} Bs</div>
-      </div>
-    `;
+      items.forEach(item => {
+        const [producto, precio, cantidad] = item.split(',');
+        const precioNum = Number(precio) || 0;
+        const cantidadNum = Number(cantidad) || 1;
+        const subtotal = precioNum * cantidadNum;
 
-    document.getElementById('total').textContent = `${subtotal} Bs`;
+        total += subtotal;
+
+        html += `
+          <div class="row">
+            <div>
+              <strong>${decodeURIComponent(producto)}</strong><br>
+              <span class="muted">Cantidad: ${cantidadNum}</span>
+            </div>
+            <div>${subtotal} Bs</div>
+          </div>
+        `;
+      });
+    } else {
+      html = `<p class="muted">No hay productos en el carrito.</p>`;
+    }
+
+    productosDiv.innerHTML = html;
+    totalDiv.textContent = `${total} Bs`;
 
     document.getElementById('continuarBtn').href = '#';
   </script>
