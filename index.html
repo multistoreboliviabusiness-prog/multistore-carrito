@@ -70,6 +70,9 @@
       border-radius: 12px;
       font-weight: bold;
       box-sizing: border-box;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
     }
   </style>
 </head>
@@ -82,32 +85,41 @@
 
     <div class="card">
       <h2>Productos</h2>
-
-      <div class="row">
-        <div>
-          <strong>Cubo y Cable Samsung 25W PD</strong><br>
-          <span class="muted">Cantidad: 1</span>
-        </div>
-        <div>150 Bs</div>
-      </div>
-
-      <div class="row">
-        <div>
-          <strong>Cable USB-C a USB-C Samsung</strong><br>
-          <span class="muted">Cantidad: 1</span>
-        </div>
-        <div>65 Bs</div>
-      </div>
+      <div id="productos"></div>
     </div>
 
     <div class="card">
       <h2>Total</h2>
-      <div class="total">215 Bs</div>
+      <div class="total" id="total">0 Bs</div>
     </div>
 
     <div class="card">
-      <a class="btn" href="#">Continuar con el pedido</a>
+      <a class="btn" id="continuarBtn" href="#">Continuar con el pedido</a>
     </div>
   </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+
+    const producto = params.get('producto') || 'Producto no definido';
+    const precio = Number(params.get('precio')) || 0;
+    const cantidad = Number(params.get('cantidad')) || 1;
+
+    const subtotal = precio * cantidad;
+
+    document.getElementById('productos').innerHTML = `
+      <div class="row">
+        <div>
+          <strong>${producto}</strong><br>
+          <span class="muted">Cantidad: ${cantidad}</span>
+        </div>
+        <div>${subtotal} Bs</div>
+      </div>
+    `;
+
+    document.getElementById('total').textContent = `${subtotal} Bs`;
+
+    document.getElementById('continuarBtn').href = '#';
+  </script>
 </body>
 </html>
