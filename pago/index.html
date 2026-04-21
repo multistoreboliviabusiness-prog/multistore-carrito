@@ -68,6 +68,7 @@
     .totals-line {
       display: flex;
       justify-content: space-between;
+      gap: 12px;
       padding: 10px 0;
       font-size: 18px;
       border-bottom: 1px solid #eee;
@@ -117,11 +118,6 @@
       cursor: pointer;
       font-size: 18px;
     }
-
-    .highlight {
-      font-weight: bold;
-      color: #0a7a28;
-    }
   </style>
 </head>
 <body>
@@ -159,6 +155,7 @@
     const params = new URLSearchParams(window.location.search);
     const itemsParam = params.get('items') || '';
     const totalPedido = Number(params.get('total_pedido')) || 0;
+    const ciudad = decodeURIComponent(params.get('ciudad') || 'Por definir');
 
     const productosDiv = document.getElementById('productos');
     const lineasTotalesDiv = document.getElementById('lineasTotales');
@@ -197,10 +194,16 @@
 
     const bloquesEnvio = Math.ceil(cantidadTotalProductos / 3);
 
-    const ciudad = 'Por definir';
     let costoBaseEnvio = 0;
 
-    // Aquí luego conectaremos la ciudad real y su costo.
+    if (ciudad === 'Cochabamba') costoBaseEnvio = 15;
+    else if (ciudad === 'Santa Cruz hasta 4to anillo') costoBaseEnvio = 0;
+    else if (ciudad === 'Santa Cruz pasando 4to anillo hasta 8vo') costoBaseEnvio = 15;
+    else if (ciudad === 'La Paz') costoBaseEnvio = 15;
+    else if (ciudad === 'Tarija') costoBaseEnvio = 20;
+    else if (ciudad === 'Sucre') costoBaseEnvio = 20;
+    else if (ciudad === 'El Alto') costoBaseEnvio = 20;
+
     const costoEnvio = costoBaseEnvio * bloquesEnvio;
     const totalFinal = totalPedido + costoEnvio;
 
