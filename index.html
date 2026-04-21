@@ -41,7 +41,7 @@
       display: flex;
       justify-content: space-between;
       gap: 12px;
-      padding: 10px 0;
+      padding: 14px 0;
       border-bottom: 1px solid #eee;
     }
 
@@ -49,8 +49,20 @@
       border-bottom: none;
     }
 
+    .product-name {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
     .muted {
       color: #666;
+      line-height: 1.5;
+    }
+
+    .subtotal {
+      font-weight: bold;
+      white-space: nowrap;
+      align-self: center;
     }
 
     .total {
@@ -121,10 +133,12 @@
         html += `
           <div class="row">
             <div>
-              <strong>${decodeURIComponent(producto)}</strong><br>
-              <span class="muted">Cantidad: ${cantidadNum}</span>
+              <div class="product-name">${decodeURIComponent(producto)}</div>
+              <div class="muted">Precio unitario: ${precioNum} Bs</div>
+              <div class="muted">Cantidad: ${cantidadNum}</div>
+              <div class="muted">Subtotal: ${subtotal} Bs</div>
             </div>
-            <div>${subtotal} Bs</div>
+            <div class="subtotal">${subtotal} Bs</div>
           </div>
         `;
       });
