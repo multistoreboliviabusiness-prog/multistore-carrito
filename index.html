@@ -86,6 +86,11 @@
       cursor: pointer;
       font-size: 18px;
     }
+
+    .btn-secondary {
+      background: #444;
+      margin-top: 12px;
+    }
   </style>
 </head>
 <body>
@@ -107,35 +112,54 @@
 
     <div class="card">
       <a class="btn" id="continuarBtn" href="#">Ir al formulario de envío</a>
+      <button class="btn btn-secondary" id="vaciarBtn" type="button">Vaciar carrito</button>
     </div>
   </div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const itemsParam = params.get('items') || '';
+    const productoNuevo = params.get('producto');
+    const precioNuevo = Number(params.get('precio')) || 0;
+    const cantidadNueva = Number(params.get('cantidad')) || 1;
+
     const productosDiv = document.getElementById('productos');
     const totalDiv = document.getElementById('total');
+    const vaciarBtn = document.getElementById('vaciarBtn');
+
+    let carrito = JSON.parse(localStorage.getItem('multistore_carrito') || '[]');
+
+    // Si entra un producto por URL, lo agregamos o sumamos cantidad
+    if (productoNuevo && precioNuevo > 0) {
+      const existente = carrito.find(item => item.producto === productoNuevo);
+
+      if (existente) {
+        existente.cantidad += cantidadNueva;
+      } else {
+        carrito.push({
+          producto: productoNuevo,
+          precio: precioNuevo,
+          cantidad: cantidadNueva
+        });
+      }
+
+      localStorage.setItem('multistore_carrito', JSON.stringify(carrito));
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
     let total = 0;
     let html = '';
 
-    if (itemsParam) {
-      const items = itemsParam.split('|');
-
-      items.forEach(item => {
-        const [producto, precio, cantidad] = item.split(',');
-        const precioNum = Number(precio) || 0;
-        const cantidadNum = Number(cantidad) || 1;
-        const subtotal = precioNum * cantidadNum;
-
+    if (carrito.length > 0) {
+      carrito.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
         total += subtotal;
 
         html += `
           <div class="row">
             <div>
-              <div class="product-name">${decodeURIComponent(producto)}</div>
-              <div class="muted">Precio unitario: ${precioNum} Bs</div>
-              <div class="muted">Cantidad: ${cantidadNum}</div>
+              <div class="product-name">${item.producto}</div>
+              <div class="muted">Precio unitario: ${item.precio} Bs</div>
+              <div class="muted">Cantidad: ${item.cantidad}</div>
               <div class="muted">Subtotal: ${subtotal} Bs</div>
             </div>
             <div class="subtotal">${subtotal} Bs</div>
@@ -149,27 +173,30 @@
     productosDiv.innerHTML = html;
     totalDiv.textContent = `${total} Bs`;
 
-    const resumenPedido = itemsParam
-      ? itemsParam
-          .split('|')
-          .map(item => {
-            const [producto, precio, cantidad] = item.split(',');
-            return `${decodeURIComponent(producto)} x${cantidad}`;
-          })
-          .join(' | ')
-      : '';
+    const itemsParam = carrito
+      .map(item => `${encodeURIComponent(item.producto)},${item.precio},${item.cantidad}`)
+      .join('|');
+
+    const resumenPedido = carrito
+      .map(item => `${item.producto} x${item.cantidad}`)
+      .join(' | ');
 
     const tallyBaseUrl = 'https://tally.so/r/eqxBpe';
     const redirectUrl = 'https://multistore-carrito.vercel.app/pago';
 
     const continuarUrl =
       `${tallyBaseUrl}` +
-      `?items=${encodeURIComponent(itemsParam)}` +
+      `?items=${itemsParam}` +
       `&resumen_pedido=${encodeURIComponent(resumenPedido)}` +
       `&total_pedido=${encodeURIComponent(total)}` +
       `&redirect_url=${encodeURIComponent(redirectUrl)}`;
 
     document.getElementById('continuarBtn').href = continuarUrl;
+
+    vaciarBtn.addEventListener('click', () => {
+      localStorage.removeItem('multistore_carrito');
+      window.location.reload();
+    });
   </script>
 </body>
 </html>
