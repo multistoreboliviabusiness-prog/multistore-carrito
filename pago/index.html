@@ -205,7 +205,7 @@
 
           cantidadItemsEnvio += Math.ceil(cantidadNum / 5);
         } else {
-          cantidadItemsEnvio += 1;
+          cantidadItemsEnvio += cantidadNum;
         }
 
         totalProductos += subtotal;
@@ -243,8 +243,6 @@
     const costoEnvio = costoBaseEnvio * bloquesEnvio;
     const totalFinal = totalProductos + costoEnvio;
 
-    const linkGracias = `https://sites.google.com/view/pagomultistore/gracias?subtotal=${encodeURIComponent(totalProductos)}&costo_envio=${encodeURIComponent(costoEnvio)}&total_pedido_mas_envio=${encodeURIComponent(totalFinal)}`;
-
     lineasTotalesDiv.innerHTML = `
       <div class="totals-line">
         <span>Subtotal productos</span>
@@ -264,7 +262,7 @@
       </div>
     `;
 
-    document.getElementById('botonGracias').href = linkGracias;
+    document.getElementById('botonGracias').href = 'https://multistore-carrito.vercel.app/finalizar';
   </script>
 </body>
 </html>
