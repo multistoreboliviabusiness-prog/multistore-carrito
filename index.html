@@ -86,11 +86,18 @@
       border: none;
       cursor: pointer;
       font-size: 18px;
+      transition: opacity 0.2s ease;
     }
 
     .btn-secondary {
       background: #444;
       margin-top: 12px;
+    }
+
+    .btn-disabled {
+      pointer-events: none;
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     .item-actions {
@@ -191,6 +198,18 @@
       localStorage.setItem('multistore_carrito', JSON.stringify(carrito));
     }
 
+    function bloquearContinuar() {
+      continuarBtn.removeAttribute('href');
+      continuarBtn.classList.add('btn-disabled');
+      continuarBtn.setAttribute('aria-disabled', 'true');
+    }
+
+    function habilitarContinuar(url) {
+      continuarBtn.href = url;
+      continuarBtn.classList.remove('btn-disabled');
+      continuarBtn.removeAttribute('aria-disabled');
+    }
+
     function renderCarrito() {
       let total = 0;
       let html = '';
@@ -219,14 +238,8 @@
             </div>
           `;
         });
-
-        continuarBtn.style.pointerEvents = 'auto';
-        continuarBtn.style.opacity = '1';
       } else {
         html = `<p class="muted">Tu carrito está vacío. Vuelve a la tienda para iniciar una nueva compra.</p>`;
-        continuarBtn.removeAttribute('href');
-        continuarBtn.style.pointerEvents = 'none';
-        continuarBtn.style.opacity = '0.5';
       }
 
       productosDiv.innerHTML = html;
@@ -256,7 +269,9 @@
         `&incluye_hidrogel=${encodeURIComponent(incluyeHidrogel)}`;
 
       if (carrito.length > 0) {
-        continuarBtn.href = continuarUrl;
+        habilitarContinuar(continuarUrl);
+      } else {
+        bloquearContinuar();
       }
     }
 
