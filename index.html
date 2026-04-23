@@ -131,18 +131,6 @@
       border-radius: 10px;
       font-weight: bold;
     }
-
-    .detail-box {
-      margin-top: 8px;
-      padding: 10px 12px;
-      background: rgba(0, 0, 0, 0.03);
-      border-radius: 10px;
-    }
-
-    .detail-line {
-      margin: 4px 0;
-      color: #444;
-    }
   </style>
 </head>
 <body>
@@ -178,6 +166,7 @@
     const productosDiv = document.getElementById('productos');
     const totalDiv = document.getElementById('total');
     const vaciarBtn = document.getElementById('vaciarBtn');
+    const continuarBtn = document.getElementById('continuarBtn');
 
     let carrito = JSON.parse(localStorage.getItem('multistore_carrito') || '[]');
 
@@ -230,8 +219,14 @@
             </div>
           `;
         });
+
+        continuarBtn.style.pointerEvents = 'auto';
+        continuarBtn.style.opacity = '1';
       } else {
-        html = `<p class="muted">No hay productos en el carrito.</p>`;
+        html = `<p class="muted">Tu carrito está vacío. Vuelve a la tienda para iniciar una nueva compra.</p>`;
+        continuarBtn.removeAttribute('href');
+        continuarBtn.style.pointerEvents = 'none';
+        continuarBtn.style.opacity = '0.5';
       }
 
       productosDiv.innerHTML = html;
@@ -260,7 +255,9 @@
         `&redirect_url=${encodeURIComponent(redirectUrl)}` +
         `&incluye_hidrogel=${encodeURIComponent(incluyeHidrogel)}`;
 
-      document.getElementById('continuarBtn').href = continuarUrl;
+      if (carrito.length > 0) {
+        continuarBtn.href = continuarUrl;
+      }
     }
 
     productosDiv.addEventListener('click', (e) => {
