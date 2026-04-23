@@ -118,6 +118,18 @@
       cursor: pointer;
       font-size: 18px;
     }
+
+    .detail-box {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.03);
+      border-radius: 10px;
+    }
+
+    .detail-line {
+      margin: 4px 0;
+      color: #444;
+    }
   </style>
 </head>
 <body>
@@ -153,34 +165,59 @@
 
   <script>
     const params = new URLSearchParams(window.location.search);
+
     const itemsParam = params.get('items') || '';
     const totalPedido = Number(params.get('total_pedido')) || 0;
     const ciudad = decodeURIComponent(params.get('ciudad') || 'Por definir');
+
+    const telefonoTabletOtros = decodeURIComponent(params.get('telefono_tablet_otros') || '');
+    const modeloHidrogel = decodeURIComponent(params.get('modelo_hidrogel') || '');
+    const cantidadHidrogel = Number(params.get('cantidad_hidrogel')) || 0;
 
     const productosDiv = document.getElementById('productos');
     const lineasTotalesDiv = document.getElementById('lineasTotales');
 
     let htmlProductos = '';
-    let cantidadTotalProductos = 0;
+    let totalProductos = 0;
+    let cantidadItemsEnvio = 0;
 
     if (itemsParam) {
       const items = itemsParam.split('|');
 
       items.forEach(item => {
         const [producto, precio, cantidad] = item.split(',');
+        const productoNombre = decodeURIComponent(producto);
         const precioNum = Number(precio) || 0;
-        const cantidadNum = Number(cantidad) || 1;
-        const subtotal = precioNum * cantidadNum;
+        let cantidadNum = Number(cantidad) || 1;
+        let subtotal = precioNum * cantidadNum;
+        let detalleExtra = '';
 
-        cantidadTotalProductos += cantidadNum;
+        if (productoNombre === 'Protector Hidrogel' && cantidadHidrogel > 0) {
+          cantidadNum = cantidadHidrogel;
+          subtotal = precioNum * cantidadNum;
+
+          detalleExtra = `
+            <div class="detail-box">
+              <div class="detail-line"><strong>Tipo de equipo:</strong> ${telefonoTabletOtros || 'No especificado'}</div>
+              <div class="detail-line"><strong>Marca y modelo:</strong> ${modeloHidrogel || 'No especificado'}</div>
+            </div>
+          `;
+
+          cantidadItemsEnvio += Math.ceil(cantidadNum / 5);
+        } else {
+          cantidadItemsEnvio += 1;
+        }
+
+        totalProductos += subtotal;
 
         htmlProductos += `
           <div class="row">
             <div>
-              <div class="product-name">${decodeURIComponent(producto)}</div>
+              <div class="product-name">${productoNombre}</div>
               <div class="muted">Precio unitario: ${precioNum} Bs</div>
               <div class="muted">Cantidad: ${cantidadNum}</div>
               <div class="muted">Subtotal: ${subtotal} Bs</div>
+              ${detalleExtra}
             </div>
             <div class="subtotal">${subtotal} Bs</div>
           </div>
@@ -192,10 +229,9 @@
 
     productosDiv.innerHTML = htmlProductos;
 
-    const bloquesEnvio = Math.ceil(cantidadTotalProductos / 3);
+    const bloquesEnvio = Math.ceil(cantidadItemsEnvio / 3);
 
     let costoBaseEnvio = 0;
-
     if (ciudad === 'Cochabamba') costoBaseEnvio = 15;
     else if (ciudad === 'Santa Cruz hasta 4to anillo') costoBaseEnvio = 0;
     else if (ciudad === 'Santa Cruz pasando 4to anillo hasta 8vo') costoBaseEnvio = 15;
@@ -205,13 +241,14 @@
     else if (ciudad === 'El Alto') costoBaseEnvio = 20;
 
     const costoEnvio = costoBaseEnvio * bloquesEnvio;
-    const totalFinal = totalPedido + costoEnvio;
-    const linkGracias = `https://sites.google.com/view/pagomultistore/gracias?subtotal=${encodeURIComponent(totalPedido)}&costo_envio=${encodeURIComponent(costoEnvio)}&total_pedido_mas_envio=${encodeURIComponent(totalFinal)}`;
+    const totalFinal = totalProductos + costoEnvio;
+
+    const linkGracias = `https://sites.google.com/view/pagomultistore/gracias?subtotal=${encodeURIComponent(totalProductos)}&costo_envio=${encodeURIComponent(costoEnvio)}&total_pedido_mas_envio=${encodeURIComponent(totalFinal)}`;
 
     lineasTotalesDiv.innerHTML = `
       <div class="totals-line">
         <span>Subtotal productos</span>
-        <strong>${totalPedido} Bs</strong>
+        <strong>${totalProductos} Bs</strong>
       </div>
       <div class="totals-line">
         <span>Ciudad de envío</span>
