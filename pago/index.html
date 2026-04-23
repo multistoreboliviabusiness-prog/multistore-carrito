@@ -130,10 +130,14 @@
       margin: 4px 0;
       color: #444;
     }
+
+    .warning-box {
+      text-align: center;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="contenidoPago">
     <div class="card">
       <h1>Resumen final de tu pedido</h1>
       <p class="muted">Revisa tus productos y el monto total antes de realizar el pago.</p>
@@ -164,105 +168,117 @@
   </div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
+    const carritoActual = JSON.parse(localStorage.getItem('multistore_carrito') || '[]');
 
-    const itemsParam = params.get('items') || '';
-    const totalPedido = Number(params.get('total_pedido')) || 0;
-    const ciudad = decodeURIComponent(params.get('ciudad') || 'Por definir');
+    if (!carritoActual || carritoActual.length === 0) {
+      document.getElementById('contenidoPago').innerHTML = `
+        <div class="card warning-box">
+          <h1>Esta compra ya fue finalizada</h1>
+          <p class="muted">Tu carrito está vacío. Vuelve a la tienda para iniciar una nueva compra.</p>
+          <a class="btn" href="https://www.multistorebolivia.com">Volver a la tienda</a>
+        </div>
+      `;
+    } else {
+      const params = new URLSearchParams(window.location.search);
 
-    const telefonoTabletOtros = decodeURIComponent(params.get('telefono_tablet_otros') || '');
-    const modeloHidrogel = decodeURIComponent(params.get('modelo_hidrogel') || '');
-    const cantidadHidrogel = Number(params.get('cantidad_hidrogel')) || 0;
+      const itemsParam = params.get('items') || '';
+      const totalPedido = Number(params.get('total_pedido')) || 0;
+      const ciudad = decodeURIComponent(params.get('ciudad') || 'Por definir');
 
-    const productosDiv = document.getElementById('productos');
-    const lineasTotalesDiv = document.getElementById('lineasTotales');
+      const telefonoTabletOtros = decodeURIComponent(params.get('telefono_tablet_otros') || '');
+      const modeloHidrogel = decodeURIComponent(params.get('modelo_hidrogel') || '');
+      const cantidadHidrogel = Number(params.get('cantidad_hidrogel')) || 0;
 
-    let htmlProductos = '';
-    let totalProductos = 0;
-    let cantidadItemsEnvio = 0;
+      const productosDiv = document.getElementById('productos');
+      const lineasTotalesDiv = document.getElementById('lineasTotales');
 
-    if (itemsParam) {
-      const items = itemsParam.split('|');
+      let htmlProductos = '';
+      let totalProductos = 0;
+      let cantidadItemsEnvio = 0;
 
-      items.forEach(item => {
-        const [producto, precio, cantidad] = item.split(',');
-        const productoNombre = decodeURIComponent(producto);
-        const precioNum = Number(precio) || 0;
-        let cantidadNum = Number(cantidad) || 1;
-        let subtotal = precioNum * cantidadNum;
-        let detalleExtra = '';
+      if (itemsParam) {
+        const items = itemsParam.split('|');
 
-        if (productoNombre === 'Protector Hidrogel' && cantidadHidrogel > 0) {
-          cantidadNum = cantidadHidrogel;
-          subtotal = precioNum * cantidadNum;
+        items.forEach(item => {
+          const [producto, precio, cantidad] = item.split(',');
+          const productoNombre = decodeURIComponent(producto);
+          const precioNum = Number(precio) || 0;
+          let cantidadNum = Number(cantidad) || 1;
+          let subtotal = precioNum * cantidadNum;
+          let detalleExtra = '';
 
-          detalleExtra = `
-            <div class="detail-box">
-              <div class="detail-line"><strong>Tipo de equipo:</strong> ${telefonoTabletOtros || 'No especificado'}</div>
-              <div class="detail-line"><strong>Marca y modelo:</strong> ${modeloHidrogel || 'No especificado'}</div>
+          if (productoNombre === 'Protector Hidrogel' && cantidadHidrogel > 0) {
+            cantidadNum = cantidadHidrogel;
+            subtotal = precioNum * cantidadNum;
+
+            detalleExtra = `
+              <div class="detail-box">
+                <div class="detail-line"><strong>Tipo de equipo:</strong> ${telefonoTabletOtros || 'No especificado'}</div>
+                <div class="detail-line"><strong>Marca y modelo:</strong> ${modeloHidrogel || 'No especificado'}</div>
+              </div>
+            `;
+
+            cantidadItemsEnvio += Math.ceil(cantidadNum / 5);
+          } else {
+            cantidadItemsEnvio += cantidadNum;
+          }
+
+          totalProductos += subtotal;
+
+          htmlProductos += `
+            <div class="row">
+              <div>
+                <div class="product-name">${productoNombre}</div>
+                <div class="muted">Precio unitario: ${precioNum} Bs</div>
+                <div class="muted">Cantidad: ${cantidadNum}</div>
+                <div class="muted">Subtotal: ${subtotal} Bs</div>
+                ${detalleExtra}
+              </div>
+              <div class="subtotal">${subtotal} Bs</div>
             </div>
           `;
+        });
+      } else {
+        htmlProductos = `<p class="muted">No hay productos en el pedido.</p>`;
+      }
 
-          cantidadItemsEnvio += Math.ceil(cantidadNum / 5);
-        } else {
-          cantidadItemsEnvio += cantidadNum;
-        }
+      productosDiv.innerHTML = htmlProductos;
 
-        totalProductos += subtotal;
+      const bloquesEnvio = Math.ceil(cantidadItemsEnvio / 3);
 
-        htmlProductos += `
-          <div class="row">
-            <div>
-              <div class="product-name">${productoNombre}</div>
-              <div class="muted">Precio unitario: ${precioNum} Bs</div>
-              <div class="muted">Cantidad: ${cantidadNum}</div>
-              <div class="muted">Subtotal: ${subtotal} Bs</div>
-              ${detalleExtra}
-            </div>
-            <div class="subtotal">${subtotal} Bs</div>
-          </div>
-        `;
-      });
-    } else {
-      htmlProductos = `<p class="muted">No hay productos en el pedido.</p>`;
+      let costoBaseEnvio = 0;
+      if (ciudad === 'Cochabamba') costoBaseEnvio = 15;
+      else if (ciudad === 'Santa Cruz hasta 4to anillo') costoBaseEnvio = 0;
+      else if (ciudad === 'Santa Cruz pasando 4to anillo hasta 8vo') costoBaseEnvio = 15;
+      else if (ciudad === 'La Paz') costoBaseEnvio = 15;
+      else if (ciudad === 'Tarija') costoBaseEnvio = 20;
+      else if (ciudad === 'Sucre') costoBaseEnvio = 20;
+      else if (ciudad === 'El Alto') costoBaseEnvio = 20;
+
+      const costoEnvio = costoBaseEnvio * bloquesEnvio;
+      const totalFinal = totalProductos + costoEnvio;
+
+      lineasTotalesDiv.innerHTML = `
+        <div class="totals-line">
+          <span>Subtotal productos</span>
+          <strong>${totalProductos} Bs</strong>
+        </div>
+        <div class="totals-line">
+          <span>Ciudad de envío</span>
+          <strong>${ciudad}</strong>
+        </div>
+        <div class="totals-line">
+          <span>Costo de envío</span>
+          <strong>${costoEnvio} Bs</strong>
+        </div>
+        <div class="totals-line grand-total">
+          <span>Total final</span>
+          <span>${totalFinal} Bs</span>
+        </div>
+      `;
+
+      document.getElementById('botonGracias').href = 'https://multistore-carrito.vercel.app/finalizar';
     }
-
-    productosDiv.innerHTML = htmlProductos;
-
-    const bloquesEnvio = Math.ceil(cantidadItemsEnvio / 3);
-
-    let costoBaseEnvio = 0;
-    if (ciudad === 'Cochabamba') costoBaseEnvio = 15;
-    else if (ciudad === 'Santa Cruz hasta 4to anillo') costoBaseEnvio = 0;
-    else if (ciudad === 'Santa Cruz pasando 4to anillo hasta 8vo') costoBaseEnvio = 15;
-    else if (ciudad === 'La Paz') costoBaseEnvio = 15;
-    else if (ciudad === 'Tarija') costoBaseEnvio = 20;
-    else if (ciudad === 'Sucre') costoBaseEnvio = 20;
-    else if (ciudad === 'El Alto') costoBaseEnvio = 20;
-
-    const costoEnvio = costoBaseEnvio * bloquesEnvio;
-    const totalFinal = totalProductos + costoEnvio;
-
-    lineasTotalesDiv.innerHTML = `
-      <div class="totals-line">
-        <span>Subtotal productos</span>
-        <strong>${totalProductos} Bs</strong>
-      </div>
-      <div class="totals-line">
-        <span>Ciudad de envío</span>
-        <strong>${ciudad}</strong>
-      </div>
-      <div class="totals-line">
-        <span>Costo de envío</span>
-        <strong>${costoEnvio} Bs</strong>
-      </div>
-      <div class="totals-line grand-total">
-        <span>Total final</span>
-        <span>${totalFinal} Bs</span>
-      </div>
-    `;
-
-    document.getElementById('botonGracias').href = 'https://multistore-carrito.vercel.app/finalizar';
   </script>
 </body>
 </html>
