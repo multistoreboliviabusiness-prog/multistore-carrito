@@ -182,6 +182,10 @@
       .map(item => `${item.producto} x${item.cantidad}`)
       .join(' | ');
 
+    const incluyeHidrogel = carrito.some(
+      item => item.producto === 'Protector Hidrogel'
+    ) ? 'si' : 'no';
+
     const tallyBaseUrl = 'https://tally.so/r/eqxBpe';
     const redirectUrl = 'https://multistore-carrito.vercel.app/pago';
 
@@ -191,6 +195,7 @@
       `&resumen_pedido=${encodeURIComponent(resumenPedido)}` +
       `&total_pedido=${encodeURIComponent(total)}` +
       `&redirect_url=${encodeURIComponent(redirectUrl)}`;
+      `&incluye_hidrogel=${encodeURIComponent(incluyeHidrogel)}`;
 
     document.getElementById('continuarBtn').href = continuarUrl;
 
