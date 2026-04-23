@@ -210,6 +210,10 @@
       continuarBtn.removeAttribute('aria-disabled');
     }
 
+    function generarCheckoutId() {
+      return 'CHK-' + Date.now() + '-' + Math.floor(1000 + Math.random() * 9000);
+    }
+
     function renderCarrito() {
       let total = 0;
       let html = '';
@@ -260,13 +264,17 @@
       const tallyBaseUrl = 'https://tally.so/r/eqxBpe';
       const redirectUrl = 'https://multistore-carrito.vercel.app/pago';
 
+      const checkoutId = generarCheckoutId();
+      sessionStorage.setItem('multistore_checkout_id', checkoutId);
+
       const continuarUrl =
         `${tallyBaseUrl}` +
         `?items=${itemsParam}` +
         `&resumen_pedido=${encodeURIComponent(resumenPedido)}` +
         `&total_pedido=${encodeURIComponent(total)}` +
         `&redirect_url=${encodeURIComponent(redirectUrl)}` +
-        `&incluye_hidrogel=${encodeURIComponent(incluyeHidrogel)}`;
+        `&incluye_hidrogel=${encodeURIComponent(incluyeHidrogel)}` +
+        `&checkout_id=${encodeURIComponent(checkoutId)}`;
 
       if (carrito.length > 0) {
         habilitarContinuar(continuarUrl);
@@ -305,6 +313,7 @@
 
     vaciarBtn.addEventListener('click', () => {
       localStorage.removeItem('multistore_carrito');
+      sessionStorage.removeItem('multistore_checkout_id');
       carrito = [];
       renderCarrito();
     });
