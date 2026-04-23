@@ -63,6 +63,7 @@
       font-weight: bold;
       white-space: nowrap;
       align-self: center;
+      font-size: 18px;
     }
 
     .total {
@@ -91,6 +92,57 @@
       background: #444;
       margin-top: 12px;
     }
+
+    .item-actions {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .mini-btn {
+      border: none;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .mini-btn-minus,
+    .mini-btn-plus {
+      background: #ececec;
+      color: #222;
+      min-width: 42px;
+    }
+
+    .mini-btn-delete {
+      background: #f3d7d7;
+      color: #8b0000;
+    }
+
+    .cantidad-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      padding: 8px 10px;
+      background: #f5f5f5;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+
+    .detail-box {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.03);
+      border-radius: 10px;
+    }
+
+    .detail-line {
+      margin: 4px 0;
+      color: #444;
+    }
   </style>
 </head>
 <body>
@@ -111,7 +163,7 @@
     </div>
 
     <div class="card">
-      <a class="btn" id="continuarBtn" href="#">Ir al formulario de envío</a>
+      <a class="btn" id="continuarBtn" href="#">Continuar con mi compra</a>
       <a class="btn btn-secondary" href="https://www.multistorebolivia.com">Volver a la tienda</a>
       <button class="btn btn-secondary" id="vaciarBtn" type="button">Vaciar carrito</button>
     </div>
@@ -129,7 +181,6 @@
 
     let carrito = JSON.parse(localStorage.getItem('multistore_carrito') || '[]');
 
-    // Si entra un producto por URL, lo agregamos o sumamos cantidad
     if (productoNuevo && precioNuevo > 0) {
       const existente = carrito.find(item => item.producto === productoNuevo);
 
@@ -147,62 +198,106 @@
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    let total = 0;
-    let html = '';
-
-    if (carrito.length > 0) {
-      carrito.forEach(item => {
-        const subtotal = item.precio * item.cantidad;
-        total += subtotal;
-
-        html += `
-          <div class="row">
-            <div>
-              <div class="product-name">${item.producto}</div>
-              <div class="muted">Precio unitario: ${item.precio} Bs</div>
-              <div class="muted">Cantidad: ${item.cantidad}</div>
-              <div class="muted">Subtotal: ${subtotal} Bs</div>
-            </div>
-            <div class="subtotal">${subtotal} Bs</div>
-          </div>
-        `;
-      });
-    } else {
-      html = `<p class="muted">No hay productos en el carrito.</p>`;
+    function guardarCarrito() {
+      localStorage.setItem('multistore_carrito', JSON.stringify(carrito));
     }
 
-    productosDiv.innerHTML = html;
-    totalDiv.textContent = `${total} Bs`;
+    function renderCarrito() {
+      let total = 0;
+      let html = '';
 
-    const itemsParam = carrito
-      .map(item => `${encodeURIComponent(item.producto)},${item.precio},${item.cantidad}`)
-      .join('|');
+      if (carrito.length > 0) {
+        carrito.forEach((item, index) => {
+          const subtotal = item.precio * item.cantidad;
+          total += subtotal;
 
-    const resumenPedido = carrito
-      .map(item => `${item.producto} x${item.cantidad}`)
-      .join(' | ');
+          html += `
+            <div class="row">
+              <div style="flex: 1;">
+                <div class="product-name">${item.producto}</div>
+                <div class="muted">Precio unitario: ${item.precio} Bs</div>
+                <div class="muted">Cantidad: ${item.cantidad}</div>
+                <div class="muted">Subtotal: ${subtotal} Bs</div>
 
-    const incluyeHidrogel = carrito.some(
-      item => item.producto === 'Protector Hidrogel'
-    ) ? 'si' : 'no';
+                <div class="item-actions">
+                  <button class="mini-btn mini-btn-minus" data-action="minus" data-index="${index}">−</button>
+                  <div class="cantidad-box">${item.cantidad}</div>
+                  <button class="mini-btn mini-btn-plus" data-action="plus" data-index="${index}">+</button>
+                  <button class="mini-btn mini-btn-delete" data-action="delete" data-index="${index}">Eliminar</button>
+                </div>
+              </div>
+              <div class="subtotal">${subtotal} Bs</div>
+            </div>
+          `;
+        });
+      } else {
+        html = `<p class="muted">No hay productos en el carrito.</p>`;
+      }
 
-    const tallyBaseUrl = 'https://tally.so/r/eqxBpe';
-    const redirectUrl = 'https://multistore-carrito.vercel.app/pago';
+      productosDiv.innerHTML = html;
+      totalDiv.textContent = `${total} Bs`;
 
-    const continuarUrl =
-      `${tallyBaseUrl}` +
-      `?items=${itemsParam}` +
-      `&resumen_pedido=${encodeURIComponent(resumenPedido)}` +
-      `&total_pedido=${encodeURIComponent(total)}` +
-      `&redirect_url=${encodeURIComponent(redirectUrl)}` +
-      `&incluye_hidrogel=${encodeURIComponent(incluyeHidrogel)}`;
+      const itemsParam = carrito
+        .map(item => `${encodeURIComponent(item.producto)},${item.precio},${item.cantidad}`)
+        .join('|');
 
-    document.getElementById('continuarBtn').href = continuarUrl;
+      const resumenPedido = carrito
+        .map(item => `${item.producto} x${item.cantidad}`)
+        .join(' | ');
+
+      const incluyeHidrogel = carrito.some(
+        item => item.producto === 'Protector Hidrogel'
+      ) ? 'si' : 'no';
+
+      const tallyBaseUrl = 'https://tally.so/r/eqxBpe';
+      const redirectUrl = 'https://multistore-carrito.vercel.app/pago';
+
+      const continuarUrl =
+        `${tallyBaseUrl}` +
+        `?items=${itemsParam}` +
+        `&resumen_pedido=${encodeURIComponent(resumenPedido)}` +
+        `&total_pedido=${encodeURIComponent(total)}` +
+        `&redirect_url=${encodeURIComponent(redirectUrl)}` +
+        `&incluye_hidrogel=${encodeURIComponent(incluyeHidrogel)}`;
+
+      document.getElementById('continuarBtn').href = continuarUrl;
+    }
+
+    productosDiv.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+
+      const action = btn.dataset.action;
+      const index = Number(btn.dataset.index);
+
+      if (Number.isNaN(index) || !carrito[index]) return;
+
+      if (action === 'plus') {
+        carrito[index].cantidad += 1;
+      }
+
+      if (action === 'minus') {
+        carrito[index].cantidad -= 1;
+        if (carrito[index].cantidad <= 0) {
+          carrito.splice(index, 1);
+        }
+      }
+
+      if (action === 'delete') {
+        carrito.splice(index, 1);
+      }
+
+      guardarCarrito();
+      renderCarrito();
+    });
 
     vaciarBtn.addEventListener('click', () => {
       localStorage.removeItem('multistore_carrito');
-      window.location.reload();
+      carrito = [];
+      renderCarrito();
     });
+
+    renderCarrito();
   </script>
 </body>
 </html>
