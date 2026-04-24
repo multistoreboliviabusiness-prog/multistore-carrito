@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agregar al carrito</title>
+</head>
+<body>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const producto = params.get('producto');
+    const precio = Number(params.get('precio')) || 0;
+    const cantidad = Number(params.get('cantidad')) || 1;
+
+    let carrito = [];
+    try {
+      carrito = JSON.parse(localStorage.getItem('multistore_carrito') || '[]');
+    } catch {
+      carrito = [];
+    }
+
+    if (producto && precio > 0) {
+      const existente = carrito.find(item => item.producto === producto);
+
+      if (existente) {
+        existente.cantidad += cantidad;
+      } else {
+        carrito.push({
+          producto,
+          precio,
+          cantidad
+        });
+      }
+
+      localStorage.setItem('multistore_carrito', JSON.stringify(carrito));
+    }
+
+    document.body.innerHTML = 'OK';
+  </script>
+</body>
+</html>
