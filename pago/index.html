@@ -168,6 +168,8 @@
   </div>
 
   <script>
+    window.name = 'multistore_resumen';
+
     const carritoActual = JSON.parse(localStorage.getItem('multistore_carrito') || '[]');
 
     if (!carritoActual || carritoActual.length === 0) {
@@ -175,9 +177,13 @@
         <div class="card warning-box">
           <h1>Esta compra ya fue finalizada</h1>
           <p class="muted">Tu carrito está vacío. Vuelve a la tienda para iniciar una nueva compra.</p>
-          <a class="btn" href="https://www.multistorebolivia.com">Volver a la tienda</a>
+          <button class="btn" id="volverTiendaPagoBtn" type="button">Volver a la tienda</button>
         </div>
       `;
+
+      document.getElementById('volverTiendaPagoBtn').addEventListener('click', () => {
+        window.open('https://www.multistorebolivia.com', 'multistore_tienda');
+      });
     } else {
       const params = new URLSearchParams(window.location.search);
 
