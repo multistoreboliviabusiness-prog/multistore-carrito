@@ -322,7 +322,13 @@
     });
 
     volverTiendaBtn.addEventListener('click', () => {
-      window.open('https://www.multistorebolivia.com', 'multistore_tienda');
+      if (window.opener && !window.opener.closed) {
+        window.opener.location.href = 'https://www.multistorebolivia.com';
+        window.opener.focus();
+        window.close();
+      } else {
+        window.location.href = 'https://www.multistorebolivia.com';
+      }
     });
 
     renderCarrito();
