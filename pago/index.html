@@ -182,13 +182,7 @@
       `;
 
       document.getElementById('volverTiendaPagoBtn').addEventListener('click', () => {
-        if (window.opener && !window.opener.closed) {
-          window.opener.location.href = 'https://www.multistorebolivia.com';
-          window.opener.focus();
-          window.close();
-        } else {
-          window.location.href = 'https://www.multistorebolivia.com';
-        }
+        window.open('https://www.multistorebolivia.com', 'multistore_tienda');
       });
     } else {
       const params = new URLSearchParams(window.location.search);
